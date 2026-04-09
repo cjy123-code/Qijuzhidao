@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>栖居之道 · 中国古代民居的气候适应性智慧图谱</title>
+    <!-- ECharts & China Map & Plotly -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@4.9.0/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@4.9.0/map/js/china.js"></script>
+    <script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2A3B4C;
+            --primary-dark: #1F2C38;
+            --secondary: #6A994E;
+            --accent: #C0392B;
+            --accent-light: #E05A4A;
+            --gold: #D4AF37;
+            --bg-light: #FDF8F0;
+            --card-bg: #FFFFFF;
+            --text-dark: #2C3E2F;
+            --text-muted: #6B5A4E;
+            --border-light: #E8E0D3;
+            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 16px 32px rgba(0, 0, 0, 0.12);
+            --transition: all 0.25s ease;
+            --radius-card: 28px;
+            --radius-element: 20px;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', '思源黑体', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-light);
+            background-image: radial-gradient(circle at 10% 20%, rgba(210, 180, 140, 0.03) 0%, rgba(0,0,0,0) 80%);
+            color: var(--text-dark);
+            scroll-behavior: smooth;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 24px 28px;
+        }
+
+        /* 顶部导航 - 更精致 */
+        .hero-nav {
+            background: linear-gradient(125deg, #9A2E22 0%, #C0392B 100%);
+            border-radius: var(--radius-card);
+            margin-bottom: 28px;
+            padding: 20px 32px;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-nav::before {
+            content: "⿅";
+            font-size: 120px;
+            opacity: 0.06;
+            position: absolute;
+            right: -20px;
+            bottom: -40px;
+            font-family: serif;
+            pointer-events: none;
+        }
+        .nav-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            z-index: 2;
+        }
+        .logo-area {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .logo-icon {
+            font-size: 36px;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+        }
+        h1 {
+            font-family: '思源宋体', '华文中宋', 'Times New Roman', serif;
+            font-size: 1.9rem;
+            font-weight: 600;
+            color: #FFF4E0;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 0 #6F2A1F;
+            margin: 0;
+        }
+        .title-sub {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #FFE6B3;
+            border-left: 2px solid var(--gold);
+            padding-left: 12px;
+            margin-left: 6px;
+            letter-spacing: 1px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .nav-links a {
+            text-decoration: none;
+            background: rgba(255, 245, 230, 0.15);
+            backdrop-filter: blur(8px);
+            padding: 8px 20px;
+            border-radius: 40px;
+            color: #FFF5E6;
+            font-weight: 500;
+            font-size: 0.85rem;
+            border: 1px solid rgba(212, 175, 55, 0.5);
+            transition: var(--transition);
+        }
+        .nav-links a:hover {
+            background: var(--gold);
+            color: #9A2E22;
+            transform: translateY(-2px);
+            border-color: var(--gold);
+        }
+
+        .intro-section {
+            margin-top: 20px;
+            background: rgba(253, 248, 240, 0.92);
+            backdrop-filter: blur(4px);
+            border-radius: 60px;
+            padding: 14px 28px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            border: 1px solid rgba(212, 175, 55, 0.5);
+            box-shadow: var(--shadow-sm);
+        }
+        .intro-text p {
+            font-size: 0.9rem;
+            line-height: 1.45;
+            color: #3A2C22;
+        }
+        .intro-text .quote {
+            font-style: italic;
+            color: var(--accent);
+            font-weight: 600;
+            border-left: 3px solid var(--gold);
+            padding-left: 14px;
+            margin-top: 6px;
+        }
+
+        /* 时间轴 */
+        .timeline-section {
+            background: var(--card-bg);
+            border-radius: var(--radius-card);
+            margin: 24px 0 28px;
+            padding: 20px 24px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-light);
+            transition: var(--transition);
+        }
+        .timeline-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-left: 4px solid var(--gold);
+            padding-left: 16px;
+        }
+        .timeline-axis {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .timeline-btn {
+            flex: 1;
+            min-width: 85px;
+            background: #F4EFE6;
+            border: 1px solid #E2D4BF;
+            border-radius: 60px;
+            padding: 8px 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #5A3A2A;
+            letter-spacing: 0.5px;
+        }
+        .timeline-btn:hover {
+            background: var(--gold);
+            color: #5A2A1F;
+            transform: translateY(-2px);
+            border-color: var(--gold);
+        }
+        .timeline-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+            box-shadow: 0 2px 8px rgba(192, 57, 43, 0.3);
+        }
+        .period-note {
+            margin-top: 12px;
+            padding: 10px 18px;
+            background: #FEF7E8;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            border-left: 4px solid var(--gold);
+            color: #4A3A2A;
+        }
+
+        /* 工具栏 更紧凑优雅 */
+        .toolbar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin: 0 0 24px 0;
+            flex-wrap: wrap;
+        }
+        .toolbar select, .toolbar button {
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            background: var(--accent);
+            color: #FFF5E6;
+            border: none;
+            font-weight: 500;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+        .toolbar select {
+            background: white;
+            color: var(--accent);
+            border: 1px solid var(--gold);
+        }
+        .toolbar button:hover, .toolbar select:hover {
+            background: var(--gold);
+            color: #6F2A1F;
+            transform: translateY(-2px);
+        }
+
+        /* KPI 卡片 */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+        .kpi-card {
+            background: var(--card-bg);
+            border-radius: 32px;
+            padding: 20px 16px;
+            text-align: center;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-light);
+            transition: var(--transition);
+            backdrop-filter: blur(2px);
+        }
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--gold);
+        }
+        .kpi-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .kpi-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #9B6A48;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .kpi-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--accent);
+            line-height: 1.2;
+            margin: 12px 0 4px;
+        }
+        .kpi-unit {
+            font-size: 0.75rem;
+            color: #7C6A58;
+        }
+
+        /* 地图+详情 两栏优化 */
+        .map-detail-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        .map-card, .info-panel {
+            background: var(--card-bg);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+        .map-header, .info-header {
+            background: #FEF5E8;
+            padding: 16px 24px;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--accent);
+            border-bottom: 1px solid #EADBB0;
+            letter-spacing: 0.3px;
+        }
+        .map-content {
+            padding: 12px;
+            height: 480px;
+            display: flex;
+            flex-direction: column;
+        }
+        #mapChart {
+            width: 100%;
+            flex: 1;
+            min-height: 380px;
+        }
+        .info-panel {
+            max-height: 540px;
+            overflow-y: auto;
+        }
+        .info-content {
+            padding: 20px 24px;
+        }
+        /* 自定义滚动条 */
+        .info-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+        .info-panel::-webkit-scrollbar-track {
+            background: #F0E5D2;
+            border-radius: 10px;
+        }
+        .info-panel::-webkit-scrollbar-thumb {
+            background: var(--gold);
+            border-radius: 10px;
+        }
+
+        /* 详情卡片内样式优化 */
+        #houseName {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+        .climate-badge {
+            display: inline-block;
+            padding: 4px 18px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: #F0E5D2;
+            color: #5A3A2A;
+            border: 0.5px solid var(--gold);
+        }
+        .intro-text-detail {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            background: #FEF9F0;
+            padding: 14px 18px;
+            border-radius: 24px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent);
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px 20px;
+            margin-bottom: 24px;
+            background: #FCF8F0;
+            border-radius: 28px;
+            padding: 18px;
+        }
+        .metric-item {
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 0.85rem;
+            border-bottom: 1px dashed #EADBB0;
+            padding-bottom: 6px;
+        }
+        .metric-label {
+            font-weight: 700;
+            color: #9B6A48;
+            min-width: 70px;
+        }
+        .adapt-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            background: #F4EFE6;
+            border-radius: 24px;
+            padding: 16px;
+            margin: 12px 0 8px;
+        }
+        .adapt-item {
+            font-size: 0.8rem;
+            line-height: 1.4;
+            border-left: 2px solid var(--gold);
+            padding-left: 12px;
+        }
+        .adapt-item strong {
+            color: var(--accent);
+        }
+        .climate-range {
+            background: #F0E5D2;
+            border-radius: 24px;
+            padding: 10px 16px;
+            font-size: 0.8rem;
+            margin-top: 16px;
+        }
+
+        /* 图表网格布局优化 (移除散点图后保留三图自适应) */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-top: 12px;
+        }
+        .chart-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-card);
+            padding: 0 0 16px 0;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-light);
+            transition: var(--transition);
+            overflow: hidden;
+        }
+        .chart-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-hover);
+        }
+        .chart-card h3 {
+            background: var(--accent);
+            color: #FFF5E6;
+            padding: 14px 20px;
+            margin: 0 0 16px 0;
+            font-size: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-weight: 600;
+        }
+        #barChart, #radarChart {
+            width: 100%;
+            height: 400px;
+            padding: 0 8px;
+        }
+        .plotly-chart {
+            width: 100%;
+            height: 420px;
+            padding: 0 8px;
+        }
+        .export-img-btn {
+            background: rgba(255,245,230,0.25);
+            border: 1px solid var(--gold);
+            padding: 5px 16px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: 500;
+            transition: 0.2s;
+            color: #FFF0D0;
+        }
+        .export-img-btn:hover {
+            background: var(--gold);
+            color: #9A2E22;
+        }
+
+        .climate-legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 16px;
+            padding: 8px 12px;
+            background: #FEF9EF;
+            border-radius: 60px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+        .legend-color {
+            width: 18px;
+            height: 18px;
+            border-radius: 18px;
+        }
+
+        .site-footer {
+            margin-top: 56px;
+            padding: 24px;
+            background: #2C2B28;
+            border-radius: 40px;
+            text-align: center;
+            color: #EADBB0;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+
+        #backToTop {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            background: var(--accent);
+            width: 44px;
+            height: 44px;
+            border-radius: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.2s;
+            z-index: 999;
+            color: white;
+            border: none;
+            box-shadow: var(--shadow-md);
+            font-size: 20px;
+        }
+        #backToTop.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        #backToTop:hover {
+            background: var(--gold);
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 1000px) {
+            .container { padding: 16px; }
+            .map-detail-row { grid-template-columns: 1fr; }
+            .charts-grid { grid-template-columns: 1fr; }
+            .kpi-value { font-size: 1.6rem; }
+            .map-content { height: 420px; }
+            h1 { font-size: 1.5rem; }
+        }
+        @media (max-width: 640px) {
+            .kpi-row { grid-template-columns: 1fr 1fr; gap: 12px; }
+            .timeline-btn { font-size: 0.65rem; min-width: 65px; padding: 6px 2px; }
+            .hero-nav { padding: 16px 20px; }
+            .intro-section { padding: 12px 18px; }
+            .toolbar button, .toolbar select { padding: 5px 12px; font-size: 0.7rem; }
+            #barChart, #radarChart { height: 320px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="hero-nav">
+        <div class="nav-header">
+            <div class="logo-area"><span class="logo-icon">🏮</span><h1>栖居之道</h1><span class="title-sub">气候适应性智慧 · 数据大屏</span></div>
+            <div class="nav-links"><a href="#mapChart">🗺️ 分布</a><a href="#barChart">📊 特征</a><a href="#radarChart">⭐ 评分</a><a href="#timeline">📜 演变</a></div>
+        </div>
+        <div class="intro-section"><div class="intro-text"><p>“<strong>天人合一，道法自然</strong> —— 传统民居顺应天时、地气、材美。”</p><p class="quote">窑洞厚土保温、土楼防风抗潮、天井引风纳凉……数据见证古人生态哲思。</p></div></div>
+    </div>
+
+    <div class="timeline-section" id="timeline">
+        <div class="timeline-title">📜 民居智慧演变 · 时间轴</div>
+        <div class="timeline-axis">
+            <div class="timeline-btn" data-period="pre_qin">🏺 史前-先秦</div>
+            <div class="timeline-btn" data-period="qin_han">🏛️ 秦汉</div>
+            <div class="timeline-btn" data-period="wei_jin_tang">⛩️ 魏晋-隋唐</div>
+            <div class="timeline-btn" data-period="song_yuan">🏯 宋元</div>
+            <div class="timeline-btn" data-period="ming_qing">🏮 明清</div>
+            <div class="timeline-btn" data-period="all">🔁 全部时期</div>
+        </div>
+        <div class="period-note" id="periodNote"><strong>🏮 当前：全部时期</strong> — 25种民居完整呈现，跨越千年智慧。</div>
+    </div>
+
+    <div class="toolbar">
+        <select id="climateFilter"><option value="all">🌍 全部气候区</option><option value="严寒区">❄️ 严寒区</option><option value="寒冷区">🍂 寒冷区</option><option value="夏热冬冷区">🌿 夏热冬冷区</option><option value="夏热冬暖区">☀️ 夏热冬暖区</option><option value="温和区">🌸 温和区</option></select>
+        <button id="clearHighlightBtn">✨ 清除高亮</button>
+        <button id="exportCSVBtn">📥 导出 CSV</button>
+        <button id="simulateCaveBtn">🏺 窑洞模拟</button>
+        <button id="resetPeriodBtn" style="background:#6A994E;">🔄 重置时间轴</button>
+    </div>
+
+    <div class="dashboard">
+        <div class="kpi-row" id="kpiContainer"></div>
+
+        <div class="map-detail-row">
+            <div class="map-card">
+                <div class="map-header">🗺️ 民居地理分布 · 气候区划</div>
+                <div class="map-content">
+                    <div id="mapChart"></div>
+                    <div class="climate-legend" id="climateLegend"></div>
+                </div>
+            </div>
+            <div class="info-panel">
+                <div class="info-header">🏡 民居智慧详情</div>
+                <div class="info-content" id="houseInfo"><p style="color:#888; text-align:center;">点击地图上的红点 / 条形图<br>查看完整建筑智慧数据</p></div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card"><h3>📊 建筑特征对比 · 墙体/窗墙/坡度<button class="export-img-btn" data-chart="barChart">📸 导出</button></h3><div id="barChart"></div></div>
+            <div class="chart-card"><h3>✨ 南北民居对比 (Plotly)<button class="export-img-btn" id="exportPlotlyBtn">📸 导出</button></h3><div id="plotlyCompareChart" class="plotly-chart"></div></div>
+            <div class="chart-card"><h3>⭐ 气候适应性评分 · 五维雷达<button class="export-img-btn" data-chart="radarChart">📸 导出</button></h3><div id="radarChart"></div></div>
+        </div>
+    </div>
+    <div style="text-align:center; margin:20px 0 10px; font-size:0.8rem; color:#8A7A6A;" id="status"></div>
+    <footer class="site-footer"><p>🏮 栖居之道 —— 中国古代民居的气候适应性智慧图谱</p><p>©2026 中国大学生计算机设计大赛 | 云南大学 信息学院</p></footer>
+</div>
+<button id="backToTop" title="返回顶部">↑</button>
+
+<script>
+(function(){
+    // ---------- 原始数据（完整25种，包含五维评分）----------
+    const allHousesRaw = [
+        { name:"陕北窑洞", coords:[109.5,36.5], climate:"严寒区", temp:9.5, precip:495, wall:800, ratio:0.08, pitch:0, scores:{保温:9,隔热:8,通风:4,防潮:3,采光:3}, wallMat:"土/石材/砖/土坯", roof:"拱形平顶", courtyard:"四合院/线形", insulation:"厚层黄土覆盖", heatKeep:"厚黄土+拱形结构", ventilation:"门窗对流+高侧孔", moisture:"抬高地基+防潮层", tempRange:"7~12℃", precipRange:"340~650mm", humidity:"66~78%", sunshine:"2400~2700h", desc:"依托黄土层穴居，厚土保温，冬暖夏凉。", period:"pre_qin" },
+        { name:"东北大院", coords:[126.5,45.8], climate:"严寒区", temp:4.0, precip:600, wall:650, ratio:0.25, pitch:25, scores:{保温:8,隔热:6,通风:5,防潮:4,采光:5}, wallMat:"土坯/青砖/红砖", roof:"硬山两面坡", courtyard:"四合院/口袋房", insulation:"厚墙体", heatKeep:"火炕系统+厚墙", ventilation:"门窗对流+烟道", moisture:"抬高地基+排水", tempRange:"-3.6~9℃", precipRange:"355~881mm", humidity:"50~70%", desc:"合院式，火炕取暖，厚墙防风。", period:"ming_qing" },
+        { name:"内蒙古毡房", coords:[116.0,43.9], climate:"严寒区", temp:7.0, precip:400, wall:50, ratio:0.05, pitch:15, scores:{保温:6,隔热:5,通风:7,防潮:5,采光:4}, wallMat:"羊毛毡+柳木", roof:"圆形穹顶", courtyard:"无", insulation:"多层毛毡", heatKeep:"火塘+毡围", ventilation:"天窗+掀围毡", moisture:"抬高+排水沟", tempRange:"5~9.9℃", precipRange:"166~647mm", humidity:"50~60%", desc:"穹顶结构，轻便保暖，游牧智慧。", period:"pre_qin" },
+        { name:"宁夏回族土坯房", coords:[106.2,38.4], climate:"严寒区", temp:7.0, precip:400, wall:500, ratio:0.10, pitch:15, scores:{保温:7,隔热:6,通风:5,防潮:6,采光:5}, wallMat:"土坯/夯土", roof:"平顶/坡顶", courtyard:"三合院/排排房", insulation:"厚土坯墙", heatKeep:"火炕+草泥抹面", ventilation:"门窗对流", moisture:"砖石碱脚+芦苇隔潮", tempRange:"5~9.9℃", precipRange:"166~647mm", desc:"厚土坯蓄热，半地下室降温。", period:"ming_qing" },
+        { name:"新疆阿以旺", coords:[79.9,39.5], climate:"严寒区", temp:10.0, precip:80, wall:650, ratio:0.10, pitch:0, scores:{保温:7,隔热:7,通风:6,防潮:4,采光:6}, wallMat:"土坯/夯土", roof:"平顶可上人", courtyard:"阿以旺厅", insulation:"厚墙+屋顶覆土", heatKeep:"火墙+阿以旺暖室", ventilation:"天窗拔风", moisture:"抬高地基", tempRange:"8.8~12.2℃", precipRange:"35~150mm", humidity:"40~45%", desc:"中央大厅拔风，厚墙隔热。", period:"wei_jin_tang" },
+        { name:"北京四合院", coords:[116.4,39.9], climate:"寒冷区", temp:12.0, precip:650, wall:500, ratio:0.18, pitch:25, scores:{保温:7,隔热:6,通风:5,防潮:4,采光:6}, wallMat:"青砖/灰瓦", roof:"硬山卷棚", courtyard:"标准四合院", insulation:"厚墙+游廊", heatKeep:"火炕+双层窗", ventilation:"穿堂风", moisture:"台基+散水", tempRange:"11~13℃", precipRange:"600~700mm", desc:"坐北朝南，庭院采光，防风保温。", period:"ming_qing" },
+        { name:"晋中大院", coords:[112.7,37.7], climate:"寒冷区", temp:9.0, precip:470, wall:600, ratio:0.15, pitch:30, scores:{保温:8,隔热:6,通风:5,防潮:5,采光:5}, wallMat:"青砖/石材", roof:"硬山高墙", courtyard:"狭长多重院", insulation:"厚外墙", heatKeep:"火炕+锢窑", ventilation:"院落风道", moisture:"砖石碱脚", tempRange:"7.5~11.7℃", precipRange:"400~540mm", desc:"高墙窄院，保温防匪。", period:"ming_qing" },
+        { name:"山东海草房", coords:[122.4,37.2], climate:"寒冷区", temp:11.5, precip:850, wall:850, ratio:0.12, pitch:50, scores:{保温:8,隔热:8,通风:6,防潮:7,采光:5}, wallMat:"石块/海岩石", roof:"海草顶陡坡", courtyard:"合院", insulation:"厚石墙+海草顶", heatKeep:"厚墙+陡坡", ventilation:"穿堂风", moisture:"陡坡排水+海草防潮", tempRange:"11.3~12℃", precipRange:"800~900mm", desc:"海草顶防雨抗风，厚石墙保温。", period:"ming_qing" },
+        { name:"河北平顶房", coords:[114.8,40.8], climate:"寒冷区", temp:13.0, precip:550, wall:500, ratio:0.15, pitch:0, scores:{保温:6,隔热:5,通风:5,防潮:5,采光:5}, wallMat:"土坯/砖", roof:"平顶", courtyard:"合院", insulation:"厚墙+覆土", heatKeep:"火炕", ventilation:"门窗对流", moisture:"散水", tempRange:"11~15℃", precipRange:"300~800mm", desc:"平顶晾晒，火炕取暖。", period:"ming_qing" },
+        { name:"陕西关中民居", coords:[108.9,34.3], climate:"寒冷区", temp:9.0, precip:650, wall:240, ratio:0.18, pitch:30, scores:{保温:5,隔热:5,通风:6,防潮:5,采光:6}, wallMat:"空心砖/土坯", roof:"硬山坡顶", courtyard:"合院", insulation:"240墙", heatKeep:"火炕", ventilation:"天井拔风", moisture:"砖石碱脚", tempRange:"6~13.6℃", precipRange:"500~800mm", desc:"合院布局，采光保温。", period:"ming_qing" },
+        { name:"徽派建筑", coords:[118.3,29.7], climate:"夏热冬冷区", temp:12.0, precip:1900, wall:250, ratio:0.25, pitch:25, scores:{保温:5,隔热:7,通风:8,防潮:6,采光:8}, wallMat:"小青砖/白灰", roof:"坡顶马头墙", courtyard:"天井式", insulation:"马头墙遮阳", heatKeep:"厚墙+天井", ventilation:"天井烟囱效应", moisture:"四水归堂", tempRange:"7.8~17℃", precipRange:"1470~2400mm", humidity:"75~85%", desc:"天井拔风，马头墙防火遮阳。", period:"song_yuan" },
+        { name:"江南天井院", coords:[120.5,31.0], climate:"夏热冬冷区", temp:15.5, precip:1250, wall:270, ratio:0.22, pitch:20, scores:{保温:5,隔热:6,通风:8,防潮:7,采光:7}, wallMat:"砖木", roof:"坡顶", courtyard:"天井", insulation:"高墙遮阳", heatKeep:"厚墙", ventilation:"天井拔风", moisture:"青石板排水", tempRange:"15~16.5℃", precipRange:"1000~1500mm", desc:"小天井通风采光，四周高墙。", period:"song_yuan" },
+        { name:"川西林盘", coords:[104.0,30.6], climate:"夏热冬冷区", temp:17.0, precip:950, wall:200, ratio:0.20, pitch:20, scores:{保温:4,隔热:5,通风:9,防潮:6,采光:6}, wallMat:"木/砖木", roof:"小青瓦", courtyard:"林盘聚落", insulation:"高大林木", heatKeep:"低层建筑", ventilation:"林木拔风", moisture:"水系环绕", tempRange:"16~18℃", precipRange:"900~1000mm", desc:"林盘调节微气候，水系降温。", period:"ming_qing" },
+        { name:"湖南吊脚楼", coords:[109.7,28.3], climate:"夏热冬冷区", temp:17.0, precip:1370, wall:100, ratio:0.10, pitch:25, scores:{保温:4,隔热:5,通风:8,防潮:8,采光:5}, wallMat:"杉木", roof:"坡顶青瓦", courtyard:"无", insulation:"底层架空", heatKeep:"火塘", ventilation:"底层通风", moisture:"干栏架空", tempRange:"16.3~17.9℃", precipRange:"1240~1500mm", desc:"干栏式，防潮防虫，通风极佳。", period:"pre_qin" },
+        { name:"湖北天井房", coords:[114.3,30.6], climate:"夏热冬冷区", temp:16.0, precip:1200, wall:300, ratio:0.20, pitch:25, scores:{保温:6,隔热:6,通风:7,防潮:6,采光:7}, wallMat:"砖木", roof:"坡顶", courtyard:"天井合院", insulation:"厚墙", heatKeep:"厚墙+天井", ventilation:"天井拔风", moisture:"排水系统", tempRange:"15.9~16.6℃", precipRange:"1100~1300mm", desc:"天井组织通风排水。", period:"ming_qing" },
+        { name:"福建土楼", coords:[117.0,24.7], climate:"夏热冬暖区", temp:18.5, precip:1490, wall:1000, ratio:0.10, pitch:25, scores:{保温:8,隔热:8,通风:6,防潮:7,采光:4}, wallMat:"三合土夯筑", roof:"青瓦坡顶", courtyard:"环形内通廊", insulation:"厚土墙", heatKeep:"厚墙+聚族", ventilation:"环形通廊", moisture:"出檐深远", tempRange:"17.8~19.5℃", precipRange:"1480~1500mm", desc:"巨型土楼，厚墙隔热防风，环形防御。", period:"ming_qing" },
+        { name:"广东镬耳屋", coords:[113.1,23.0], climate:"夏热冬暖区", temp:22.0, precip:1575, wall:300, ratio:0.20, pitch:25, scores:{保温:5,隔热:7,通风:7,防潮:6,采光:6}, wallMat:"青砖/麻石", roof:"坡顶镬耳山墙", courtyard:"梳式布局", insulation:"镬耳遮阳", heatKeep:"砖墙", ventilation:"山墙导风", moisture:"天井排水", tempRange:"21~23℃", precipRange:"1430~1720mm", desc:"镬耳山墙挡风引风，适应湿热。", period:"ming_qing" },
+        { name:"云南一颗印", coords:[102.7,25.0], climate:"夏热冬暖区", temp:16.0, precip:950, wall:500, ratio:0.08, pitch:25, scores:{保温:6,隔热:7,通风:6,防潮:7,采光:5}, wallMat:"夯土/土坯", roof:"坡顶小青瓦", courtyard:"三间四耳", insulation:"厚土墙", heatKeep:"厚墙+小天井", ventilation:"天井烟囱", moisture:"四水归堂", tempRange:"14~18℃", precipRange:"887~1031mm", desc:"厚墙小窗，防风防晒，天井排水。", period:"ming_qing" },
+        { name:"广西干栏式", coords:[110.2,25.2], climate:"夏热冬暖区", temp:20.0, precip:1750, wall:100, ratio:0.15, pitch:25, scores:{保温:4,隔热:5,通风:9,防潮:8,采光:5}, wallMat:"杉木/松木", roof:"坡顶", courtyard:"无", insulation:"底层架空", heatKeep:"火塘", ventilation:"全架空通风", moisture:"干栏防潮", tempRange:"16.5~23.1℃", precipRange:"1500~2000mm", desc:"干栏式极致通风防潮，适应湿热山区。", period:"pre_qin" },
+        { name:"海南火山石屋", coords:[110.3,20.0], climate:"夏热冬暖区", temp:24.0, precip:1865, wall:500, ratio:0.10, pitch:30, scores:{保温:7,隔热:8,通风:6,防潮:7,采光:5}, wallMat:"火山石", roof:"坡顶", courtyard:"合院", insulation:"厚石墙", heatKeep:"厚石", ventilation:"门窗对流", moisture:"石材防潮", tempRange:"23.8~24.4℃", precipRange:"1660~2070mm", desc:"火山石隔热，适应高温高湿。", period:"ming_qing" },
+        { name:"傣族竹楼", coords:[100.8,22.0], climate:"温和区", temp:21.0, precip:1250, wall:80, ratio:0.15, pitch:25, scores:{保温:4,隔热:5,通风:8,防潮:8,采光:6}, wallMat:"竹子/木材", roof:"人字形坡顶", courtyard:"无", insulation:"架空+竹木", heatKeep:"火塘", ventilation:"全通风", moisture:"底层高架空", tempRange:"19.5~22.4℃", precipRange:"1070~1426mm", desc:"竹楼架空，通风防潮，热带智慧。", period:"pre_qin" },
+        { name:"白族三坊一照壁", coords:[100.2,25.6], climate:"温和区", temp:15.0, precip:1080, wall:400, ratio:0.20, pitch:27, scores:{保温:6,隔热:6,通风:7,防潮:6,采光:7}, wallMat:"砖石/土坯", roof:"硬山坡顶", courtyard:"三坊照壁", insulation:"厚墙", heatKeep:"火塘+日照", ventilation:"院落通风", moisture:"青石板排水", tempRange:"14.9~15.1℃", precip:"1080mm", desc:"照壁反射阳光，防风聚气。", period:"ming_qing" },
+        { name:"纳西族民居", coords:[100.2,26.8], climate:"温和区", temp:13.5, precip:970, wall:500, ratio:0.20, pitch:25, scores:{保温:6,隔热:6,通风:7,防潮:6,采光:7}, wallMat:"土坯/砖石", roof:"悬山青瓦", courtyard:"三坊一照壁", insulation:"厚墙+深出檐", heatKeep:"厚墙+火塘", ventilation:"厦子通风", moisture:"毛石防潮", tempRange:"12.6~14.5℃", precipRange:"940~1000mm", desc:"深出檐遮阳，厚墙保温。", period:"ming_qing" },
+        { name:"藏族碉房", coords:[91.1,29.6], climate:"温和区", temp:5.0, precip:500, wall:600, ratio:0.10, pitch:0, scores:{保温:9,隔热:8,通风:5,防潮:6,采光:4}, wallMat:"石块/夯土", roof:"平顶", courtyard:"无/碉院", insulation:"厚石墙", heatKeep:"厚墙+火塘", ventilation:"门窗+烟道", moisture:"石基防潮", tempRange:"-4.4~14.2℃", precipRange:"262~772mm", desc:"石砌厚墙，平顶保暖抗风。", period:"song_yuan" },
+        { name:"羌族碉楼", coords:[103.5,31.9], climate:"温和区", temp:2.2, precip:318, wall:1500, ratio:0.08, pitch:0, scores:{保温:9,隔热:9,通风:5,防潮:6,采光:4}, wallMat:"石片/黄泥", roof:"平顶", courtyard:"无", insulation:"巨厚石墙", heatKeep:"厚墙+火塘", ventilation:"窄窗+甬道", moisture:"深基防潮", tempRange:"2.2℃(年均)", precip:"318mm", desc:"石墙极厚，冬暖夏凉，防御为主。", period:"song_yuan" }
+    ];
+    const allHouses = allHousesRaw;
+    const climateColors = { '严寒区':'#4A6FA5', '寒冷区':'#B8A389', '夏热冬冷区':'#8FAA76', '夏热冬暖区':'#E28A55', '温和区':'#D4A5A5' };
+    let currentHouses = [...allHouses];
+    let currentHighlightIndex = -1;
+    let currentPeriod = "all";
+    let mapChart, barChart, radarChart, plotlyChartDiv;
+    
+    const periodNotes = {
+        "all": "<strong>🏮 当前：全部时期</strong> — 25种民居完整呈现。",
+        "pre_qin": "<strong>🏺 史前-先秦</strong> — 穴居、干栏式萌芽，早期被动适应。",
+        "qin_han": "<strong>🏛️ 秦汉</strong> — 合院雏形，夯土成熟。",
+        "wei_jin_tang": "<strong>⛩️ 魏晋-隋唐</strong> — 天井出现，木构成熟。",
+        "song_yuan": "<strong>🏯 宋元</strong> — 马头墙、碉楼防御增强。",
+        "ming_qing": "<strong>🏮 明清</strong> — 民居类型大爆发，智慧巅峰。"
+    };
+    
+    function updateKPI() { 
+        const total = currentHouses.length;
+        const avgWall = (currentHouses.reduce((s,h)=>s+h.wall,0)/total).toFixed(0);
+        const avgInsulation = (currentHouses.reduce((s,h)=>s+h.scores.保温,0)/total).toFixed(1);
+        const climateSet = new Set(currentHouses.map(h=>h.climate));
+        document.getElementById('kpiContainer').innerHTML = `
+            <div class="kpi-card"><div class="kpi-icon">🏘️</div><div class="kpi-label">民居数量</div><div class="kpi-value">${total}</div><div class="kpi-unit">处</div></div>
+            <div class="kpi-card"><div class="kpi-icon">🧱</div><div class="kpi-label">平均墙体厚度</div><div class="kpi-value">${avgWall}</div><div class="kpi-unit">mm</div></div>
+            <div class="kpi-card"><div class="kpi-icon">🔥</div><div class="kpi-label">平均保温评分</div><div class="kpi-value">${avgInsulation}</div><div class="kpi-unit">/10</div></div>
+            <div class="kpi-card"><div class="kpi-icon">🌍</div><div class="kpi-label">覆盖气候区</div><div class="kpi-value">${climateSet.size}</div><div class="kpi-unit">个</div></div>
+        `;
+    }
+    function updateInfoPanel(house) { 
+        const container = document.getElementById('houseInfo');
+        if(!house) { container.innerHTML = `<p style="color:#888; text-align:center;">点击地图上的红点 / 条形图<br>查看完整建筑智慧数据</p>`; return; }
+        const measures = `<div class="adapt-grid"><div class="adapt-item"><strong>🧱 隔热</strong><br>${house.insulation||'—'}</div><div class="adapt-item"><strong>🔥 保温</strong><br>${house.heatKeep||'—'}</div><div class="adapt-item"><strong>🌬️ 通风</strong><br>${house.ventilation||'—'}</div><div class="adapt-item"><strong>💧 防潮</strong><br>${house.moisture||'—'}</div></div>`;
+        const climateExtra = `<div class="climate-range"><strong>🌡️ 气候特征</strong> 年均温 ${house.tempRange||house.temp+'℃'} | 降水 ${house.precipRange||house.precip+'mm'} | 湿度 ${house.humidity||'—'}</div>`;
+        container.innerHTML = `<div id="houseName">${house.name}</div><div class="climate-badge">${house.climate}</div><div class="intro-text-detail"><strong>📜 简介</strong><br>${house.desc}</div><div class="metrics-grid"><div class="metric-item"><span class="metric-label">🏗️ 墙体材料</span><span class="metric-value">${house.wallMat||'—'}</span></div><div class="metric-item"><span class="metric-label">🧱 墙体厚度</span><span class="metric-value">${house.wall} mm</span></div><div class="metric-item"><span class="metric-label">📐 屋顶坡度</span><span class="metric-value">${house.pitch}°</span></div><div class="metric-item"><span class="metric-label">🪟 窗墙比</span><span class="metric-value">${house.ratio}</span></div><div class="metric-item"><span class="metric-label">🌡️ 年均温</span><span class="metric-value">${house.temp}℃</span></div><div class="metric-item"><span class="metric-label">💧 年降水</span><span class="metric-value">${house.precip} mm</span></div></div><div class="adapt-section"><strong>🏮 气候适应性智慧</strong>${measures}</div>${climateExtra}`;
+    }
+    function getNorthSouthAvg() { 
+        const north = currentHouses.filter(h => h.climate === '严寒区' || h.climate === '寒冷区');
+        const south = currentHouses.filter(h => ['夏热冬冷区','夏热冬暖区','温和区'].includes(h.climate));
+        if(!north.length || !south.length) return { north:{wall:0,ratio:0,pitch:0}, south:{wall:0,ratio:0,pitch:0} };
+        return { north: { wall: north.reduce((a,b)=>a+b.wall,0)/north.length, ratio: north.reduce((a,b)=>a+b.ratio,0)/north.length, pitch: north.reduce((a,b)=>a+b.pitch,0)/north.length }, south: { wall: south.reduce((a,b)=>a+b.wall,0)/south.length, ratio: south.reduce((a,b)=>a+b.ratio,0)/south.length, pitch: south.reduce((a,b)=>a+b.pitch,0)/south.length } };
+    }
+    function renderPlotlyCompare() { let avg=getNorthSouthAvg(); Plotly.newPlot(plotlyChartDiv, [{x:['墙体厚度 (mm)','窗墙比','屋顶坡度 (°)'], y:[avg.north.wall, avg.north.ratio, avg.north.pitch], name:'北方民居', type:'bar', marker:{color:'#2c7bb6'}},{x:['墙体厚度 (mm)','窗墙比','屋顶坡度 (°)'], y:[avg.south.wall, avg.south.ratio, avg.south.pitch], name:'南方民居', type:'bar', marker:{color:'#d7191c'}}], {barmode:'group', title:'南北民居关键特征对比', paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)'},{responsive:true}); }
+    
+    function highlightHouse(index) { 
+        if(index===currentHighlightIndex) return;
+        if(currentHighlightIndex!==-1) { barChart.dispatchAction({type:'downplay',seriesIndex:0,dataIndex:currentHighlightIndex}); radarChart.dispatchAction({type:'downplay',seriesIndex:0,dataIndex:currentHighlightIndex}); }
+        barChart.dispatchAction({type:'highlight',seriesIndex:0,dataIndex:index}); barChart.dispatchAction({type:'showTip',seriesIndex:0,dataIndex:index});
+        radarChart.dispatchAction({type:'highlight',seriesIndex:0,dataIndex:index});
+        currentHighlightIndex = index; updateInfoPanel(currentHouses[index]); document.getElementById('status').innerHTML = `✅ 当前选中：${currentHouses[index].name}`;
+    }
+    
+    function renderAllCharts() { 
+        const scatterData = currentHouses.map(h=>({ name:h.name, value:h.coords, climateZone:h.climate, temp:h.temp, itemStyle:{color:climateColors[h.climate]} }));
+        mapChart.setOption({ title:{ text:`${currentHouses.length}处民居分布`, left:'center' }, geo:{ map:'china', roam:true, zoom:1.0, itemStyle:{ borderColor:'#B87C4F', areaColor:'#F3E9D2' } }, series:[{ type:'scatter', coordinateSystem:'geo', data:scatterData, symbolSize:12, itemStyle:{ borderColor:'#FFF' } }] });
+        
+        barChart.setOption({ tooltip:{trigger:'axis'}, legend:{data:['墙体厚度 (mm)','窗墙比','屋顶坡度 (°)']}, xAxis:{type:'category', data:currentHouses.map(h=>h.name), axisLabel:{rotate:45,interval:0,fontSize:9}}, yAxis:[{type:'value',name:'墙体/坡度'},{type:'value',name:'窗墙比',min:0,max:0.5}], series:[{name:'墙体厚度 (mm)',type:'bar',data:currentHouses.map(h=>({value:h.wall, itemStyle:{color:climateColors[h.climate]}}))},{name:'窗墙比',type:'line',yAxisIndex:1,data:currentHouses.map(h=>h.ratio)},{name:'屋顶坡度 (°)',type:'bar',data:currentHouses.map(h=>({value:h.pitch, itemStyle:{color:climateColors[h.climate]}}))}] });
+        
+        radarChart.setOption({
+            tooltip: { trigger: 'item', formatter: function(params) { if (!params.value) return params.name; const indicators = ['保温', '隔热', '通风', '防潮', '采光']; let html = `<strong>${params.name}</strong><br/>`; params.value.forEach((val, idx) => { html += `${indicators[idx]}: ${val} 分<br/>`; }); return html; } },
+            legend: { orient: 'vertical', left: 'left', type: 'scroll', pageIconColor: '#6A994E', textStyle: { fontSize: 9 }, formatter: (name) => name.length > 12 ? name.slice(0, 10) + '...' : name },
+            radar: { indicator: [ { name: '保温', max: 10 }, { name: '隔热', max: 10 }, { name: '通风', max: 10 }, { name: '防潮', max: 10 }, { name: '采光', max: 10 } ], shape: 'circle', name: { textStyle: { fontSize: 11, fontWeight: 'bold', color: '#5A3A2A' } }, center: ['50%', '50%'], radius: '65%' },
+            series: [{ type: 'radar', data: currentHouses.map(house => ({ name: house.name, value: [ house.scores.保温, house.scores.隔热, house.scores.通风, house.scores.防潮, house.scores.采光 ], lineStyle: { color: climateColors[house.climate], width: 1.5 }, areaStyle: { color: climateColors[house.climate] + '30' }, symbol: 'circle', symbolSize: 4, itemStyle: { color: climateColors[house.climate] } })), symbolSize: 3 }]
+        });
+        
+        renderPlotlyCompare(); 
+        currentHighlightIndex = -1; 
+        updateInfoPanel(null); 
+        updateKPI(); 
+        document.getElementById('status').innerHTML = `📊 当前 ${currentHouses.length} 处民居 | 点击地图/条形图查看详情`; 
+        setTimeout(()=>{ if(mapChart) mapChart.resize(); radarChart.resize(); }, 100);
+    }
+    
+    function filterByPeriod(period) { currentPeriod=period; currentHouses=period==="all"?[...allHouses]:allHouses.filter(h=>h.period===period); document.querySelectorAll('.timeline-btn').forEach(btn=>{ if(btn.dataset.period===period) btn.classList.add('active'); else btn.classList.remove('active'); }); document.getElementById('periodNote').innerHTML = periodNotes[period]||periodNotes.all; renderAllCharts(); bindMapClick(); if(currentHighlightIndex!==-1){ currentHighlightIndex=-1; updateInfoPanel(null); } document.getElementById('climateFilter').value="all"; }
+    function resetPeriod() { filterByPeriod("all"); }
+    function filterByClimate(v) { let base=currentPeriod==="all"?[...allHouses]:allHouses.filter(h=>h.period===currentPeriod); currentHouses=v==="all"?base:base.filter(h=>h.climate===v); renderAllCharts(); bindMapClick(); if(currentHighlightIndex!==-1){ currentHighlightIndex=-1; updateInfoPanel(null); } }
+    function bindMapClick(){ mapChart.off('click'); mapChart.on('click', function(params){ if(params.seriesType==='scatter' && params.data){ let idx = currentHouses.findIndex(h=>h.name===params.data.name); if(idx!==-1) highlightHouse(idx); } }); }
+    function exportChartImg(id){ let c=echarts.getInstanceByDom(document.getElementById(id)); if(c){ let a=document.createElement('a'); a.href=c.getDataURL({type:'png',pixelRatio:2}); a.download=`${id}.png`; a.click(); } }
+    function exportPlotlyImg(){ Plotly.downloadImage(plotlyChartDiv,{format:'png',filename:'plotly_compare'}); }
+    function showSimulation(){ const modal=document.createElement('div'); modal.style.cssText='position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:flex; justify-content:center; align-items:center; z-index:2000;'; const card=document.createElement('div'); card.style.cssText='background:white; border-radius:20px; width:90%; max-width:650px; padding:20px;'; card.innerHTML=`<h3 style="text-align:center;">🏺 陕北窑洞 · 冬暖夏凉动态模拟</h3><div id="tempSimChart" style="height:350px;"></div><button id="closeSimBtn" style="margin-top:15px; padding:6px 16px; background:#C0392B; color:white; border:none; border-radius:30px; display:block; margin:0 auto;">关闭</button>`; modal.appendChild(card); document.body.appendChild(modal); let sim=echarts.init(document.getElementById('tempSimChart')); sim.setOption({ tooltip:{trigger:'axis'}, legend:{data:['室外温度','窑洞室内温度'],left:'center',top:0}, xAxis:{type:'category',data:['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月']}, yAxis:{type:'value',name:'温度(℃)'}, series:[{name:'室外温度',type:'line',data:[-5,-2,5,12,18,24,28,26,20,12,4,-2],lineStyle:{color:'#91cc75'}},{name:'窑洞室内温度',type:'line',data:[12,12,13,14,16,17,18,18,17,16,14,13],lineStyle:{color:'#c23531',width:3}}] }); document.getElementById('closeSimBtn').onclick=()=>modal.remove(); modal.onclick=e=>{ if(e.target===modal) modal.remove(); }; }
+    function exportCSV(){ let data=currentHouses.map(h=>({名称:h.name,历史时期:periodNotes[h.period]?.split('—')[0]||h.period,气候区:h.climate,年均温:h.temp,墙体厚度_mm:h.wall,窗墙比:h.ratio,屋顶坡度:h.pitch,墙体材料:h.wallMat})); let headers=Object.keys(data[0]); let csv=[headers.join(',')]; data.forEach(r=>csv.push(headers.map(k=>JSON.stringify(r[k]??'')).join(','))); let blob=new Blob([csv.join('\n')],{type:'text/csv'}); let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='民居数据.csv'; a.click(); URL.revokeObjectURL(a.href); }
+    function init(){ 
+        mapChart=echarts.init(document.getElementById('mapChart')); 
+        barChart=echarts.init(document.getElementById('barChart')); 
+        radarChart=echarts.init(document.getElementById('radarChart')); 
+        plotlyChartDiv=document.getElementById('plotlyCompareChart'); 
+        renderAllCharts(); 
+        bindMapClick(); 
+        document.querySelectorAll('.timeline-btn').forEach(btn=>btn.addEventListener('click',()=>{ let p=btn.dataset.period; if(p==='all') resetPeriod(); else filterByPeriod(p); document.getElementById('climateFilter').value='all'; })); 
+        document.querySelectorAll('.export-img-btn:not(#exportPlotlyBtn)').forEach(btn=>btn.onclick=()=>exportChartImg(btn.dataset.chart)); 
+        document.getElementById('exportPlotlyBtn').onclick=exportPlotlyImg; 
+        document.getElementById('climateFilter').onchange=e=>filterByClimate(e.target.value); 
+        document.getElementById('clearHighlightBtn').onclick=()=>{ if(currentHighlightIndex!==-1){ barChart.dispatchAction({type:'downplay',seriesIndex:0,dataIndex:currentHighlightIndex}); radarChart.dispatchAction({type:'downplay',seriesIndex:0,dataIndex:currentHighlightIndex}); currentHighlightIndex=-1; updateInfoPanel(null); document.getElementById('status').innerHTML='✨ 已清除高亮'; } }; 
+        document.getElementById('exportCSVBtn').onclick=exportCSV; 
+        document.getElementById('simulateCaveBtn').onclick=showSimulation; 
+        document.getElementById('resetPeriodBtn').onclick=resetPeriod; 
+        window.addEventListener('resize',()=>{ [mapChart,barChart,radarChart].forEach(c=>c&&c.resize()); if(plotlyChartDiv) Plotly.relayout(plotlyChartDiv,{width:plotlyChartDiv.clientWidth}); }); 
+        let backBtn=document.getElementById('backToTop'); window.onscroll=()=>backBtn.classList.toggle('show',window.scrollY>300); backBtn.onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
+    }
+    init();
+})();
+</script>
+</body>
+</html>
