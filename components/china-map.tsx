@@ -16,8 +16,8 @@ export function ChinaMap({ houses, onHouseClick }: ChinaMapProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Load China map data from local API
-    fetch("/api/china-map")
+    // Load China map data from public folder
+    fetch("/china.json")
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         return res.json();
