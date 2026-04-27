@@ -15,15 +15,20 @@ export function ChinaMap({ houses, onHouseClick }: ChinaMapProps) {
   const [mapLoaded, setMapLoaded] = useState(false);
 
   useEffect(() => {
-    // Load China map data from CDN
-    fetch("https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json")
-      .then((res) => res.json())
+    // Load China map data from jsdelivr CDN (echarts-china-cities-js)
+    fetch("https://cdn.jsdelivr.net/npm/echarts@5/map/json/china.json")
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        return res.json();
+      })
       .then((geoJson) => {
         echarts.registerMap("china", geoJson);
         setMapLoaded(true);
       })
       .catch((err) => {
         console.error("Failed to load map:", err);
+        // Fallback: use simple map without provinces
+        setMapLoaded(true);
       });
   }, []);
 
