@@ -1,0 +1,195 @@
+/* 全局基础样式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "微软雅黑", "宋体", sans-serif;
+    background-color: #FFF8F0; /* 适配古风的浅米色背景 */
+}
+
+/* 顶部导航栏容器 */
+.logo-area {
+    background-color: #B22222; /* 匹配你页面的红棕主色 */
+    padding: 16px 24px;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+}
+
+/* 全局基础样式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "微软雅黑", "宋体", sans-serif;
+    background-color: #FFF8F0; /* 适配古风的浅米色背景 */
+}
+
+/* 顶部导航栏容器 */
+.logo-area {
+    background-color: #B22222; /* 匹配你页面的红棕主色 */
+    padding: 16px 24px;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+}
+
+/* 主标题：栖居之道（强制生效） */
+.logo-area .title-main,
+.logo-area > h1,
+[class*="title"][class*="main"] {
+    font-family: '楷体', '思源宋体', '华文中宋', serif !important;
+    font-size: clamp(1.8rem, 4vw, 2.5rem) !important;
+    color: #FFEFD0 !important; /* 米金色文字 */
+    letter-spacing: 4px !important; /* 字间距增强古风感 */
+    text-shadow: 
+        2px 2px 0 #6F2A1F,
+        0 0 8px rgba(255, 235, 205, 0.6),
+        0 0 12px rgba(192, 57, 43, 0.4) !important;
+    margin: 0 !important;
+    position: relative !important;
+    padding: 4px 0 !important;
+    transition: all 0.3s ease !important;
+    font-weight: normal !important; /* 楷体默认粗体太突兀，重置为常规 */
+}
+
+/* 主标题下划线装饰 */
+.logo-area .title-main::after,
+.logo-area > h1::after {
+    content: "" !important;
+    position: absolute !important;
+    bottom: -4px !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 2px !important;
+    background: linear-gradient(90deg, transparent, #D4AF37, transparent) !important; /* 渐变金线 */
+    border-radius: 2px !important;
+    opacity: 0.8 !important;
+}
+
+/* 副标题：中国古代民居的气候适应性智慧图谱（强制生效） */
+.logo-area .title-sub,
+.logo-area > span,
+[class*="title"][class*="sub"] {
+    font-size: clamp(0.7rem, 2vw, 0.9rem) !important;
+    color: #FFE2B5 !important; /* 浅琥珀色 */
+    border-left: 1px solid #D4AF37 !important; /* 金线分隔 */
+    padding: 4px 12px !important;
+    margin-left: 12px !important;
+    font-style: italic !important;
+    letter-spacing: 1px !important;
+    background: rgba(212, 175, 55, 0.1) !important; /* 浅金背景 */
+    border-radius: 0 8px 8px 0 !important;
+    transition: all 0.3s ease !important;
+    align-self: flex-end; /* 副标题和主标题底部对齐，更美观 */
+    margin-bottom: 6px !important;
+}
+
+/* 标题hover交互效果 */
+.logo-area:hover .title-main,
+.logo-area:hover > h1 {
+    transform: translateY(-2px) !important;
+    text-shadow: 
+        3px 3px 0 #6F2A1F,
+        0 0 10px rgba(255, 235, 205, 0.8),
+        0 0 15px rgba(192, 57, 43, 0.6) !important;
+}
+
+.logo-area:hover .title-sub,
+.logo-area:hover > span {
+    background: rgba(212, 175, 55, 0.2) !important;
+    color: #FFF5E6 !important;
+    border-color: #FFD700 !important; /* hover时金线变亮 */
+}
+
+/* 顶部功能按钮样式适配（匹配你的页面） */
+.logo-area .nav-btn {
+    margin-left: auto; /* 按钮靠右 */
+    display: flex;
+    gap: 8px;
+}
+
+.logo-area .nav-btn button {
+    background-color: #CD5C5C;
+    color: #FFEFD0;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 0.9rem;
+}
+
+.logo-area .nav-btn button:hover {
+    background-color: #8B0000;
+}
+
+/* 响应式适配：移动端标题不挤压 */
+@media (max-width: 768px) {
+    .logo-area {
+        flex-wrap: wrap; /* 移动端标题和副标题换行 */
+    }
+    .logo-area .title-sub {
+        margin-left: 0 !important;
+        margin-top: 8px !important;
+        align-self: flex-start !important;
+        margin-bottom: 0 !important;
+    }
+    .logo-area .nav-btn {
+        margin-left: 0 !important;
+        margin-top: 12px !important;
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+/* 顶部功能按钮样式适配（匹配你的页面） */
+.logo-area .nav-btn {
+    margin-left: auto; /* 按钮靠右 */
+    display: flex;
+    gap: 8px;
+}
+
+.logo-area .nav-btn button {
+    background-color: #CD5C5C;
+    color: #FFEFD0;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 0.9rem;
+}
+
+.logo-area .nav-btn button:hover {
+    background-color: #8B0000;
+}
+
+/* 响应式适配：移动端标题不挤压 */
+@media (max-width: 768px) {
+    .logo-area {
+        flex-wrap: wrap; /* 移动端标题和副标题换行 */
+    }
+    .logo-area .title-sub {
+        margin-left: 0 !important;
+        margin-top: 8px !important;
+        align-self: flex-start !important;
+        margin-bottom: 0 !important;
+    }
+    .logo-area .nav-btn {
+        margin-left: 0 !important;
+        margin-top: 12px !important;
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
