@@ -596,6 +596,11 @@
     </div>
 
     <div class="toolbar">
+        <div class="search-box" style="display:inline-flex; align-items:center; gap:6px; background:white; border:1px solid var(--gold); border-radius:40px; padding:4px 6px 4px 16px; box-shadow:var(--shadow-sm);">
+            <span style="color:var(--accent); font-size:0.85rem;">🔍</span>
+            <input type="text" id="searchInput" placeholder="搜索关键词如：墙体厚度、窗墙比..." style="border:none; outline:none; background:transparent; font-size:0.8rem; color:var(--text-dark); min-width:160px; padding:4px 0;">
+            <button id="searchBtn" style="background:var(--accent); color:#FFF5E6; border:none; border-radius:40px; padding:6px 16px; font-size:0.75rem; cursor:pointer; font-weight:500; transition:var(--transition);">搜索</button>
+        </div>
         <select id="climateFilter"><option value="all">🌍 全部气候区</option><option value="严寒区">❄️ 严寒区</option><option value="寒冷区">🍂 寒冷区</option><option value="夏热冬冷区">🌿 夏热冬冷区</option><option value="夏热冬暖区">☀️ 夏热冬暖区</option><option value="温和区">🌸 温和区</option></select>
         <button id="clearHighlightBtn">✨ 清除高亮</button>
         <button id="exportCSVBtn">📥 导出 CSV</button>
@@ -620,10 +625,14 @@
             </div>
         </div>
 
-        <div class="charts-grid">
-            <div class="chart-card"><h3>📊 建筑特征对比 · 墙体/窗墙/坡度<button class="export-img-btn" data-chart="barChart">📸 导出</button></h3><div id="barChart"></div></div>
-            <div class="chart-card"><h3>✨ 南北民居对比 (Plotly)<button class="export-img-btn" id="exportPlotlyBtn">📸 导出</button></h3><div id="plotlyCompareChart" class="plotly-chart"></div></div>
-            <div class="chart-card"><h3>⭐ 气候适应性评分 · 五维雷达<button class="export-img-btn" data-chart="radarChart">📸 导出</button></h3><div id="radarChart"></div></div>
+        <div class="charts-grid" id="chartsGrid">
+            <div class="chart-card" id="barChartCard"><h3>📊 建筑特征对比 · 墙体/窗墙/坡度<button class="export-img-btn" data-chart="barChart">📸 导出</button></h3><div id="barChart"></div>
+                <div id="searchBackContainer" style="display:none; text-align:center; padding:12px 0 8px;">
+                    <button id="exitSearchBtn" style="background:var(--accent); color:#FFF5E6; border:none; border-radius:40px; padding:8px 28px; font-size:0.85rem; cursor:pointer; font-weight:600; transition:var(--transition); box-shadow:var(--shadow-sm);">🔙 返回默认视图</button>
+                </div>
+            </div>
+            <div class="chart-card" id="plotlyCard"><h3>✨ 南北民居对比 (Plotly)<button class="export-img-btn" id="exportPlotlyBtn">📸 导出</button></h3><div id="plotlyCompareChart" class="plotly-chart"></div></div>
+            <div class="chart-card" id="radarCard"><h3>⭐ 气候适应性评分 · 五维雷达<button class="export-img-btn" data-chart="radarChart">📸 导出</button></h3><div id="radarChart"></div></div>
         </div>
     </div>
     <div style="text-align:center; margin:20px 0 10px; font-size:0.8rem; color:#8A7A6A;" id="status"></div>
@@ -668,6 +677,42 @@
     let currentPeriod = "all";
     let mapChart, barChart, radarChart, plotlyChartDiv;
     
+    // ========== 关键词搜索相关 ==========
+    let currentSearchField = null; // 当前搜索映射到的字段名
+    let currentSearchKeyword = ''; // 当前搜索关键词
+    
+    // 关键词 → 数据字段映射表
+    const keywordMap = {
+        // 墙体相关
+        '墙体厚度': { field: 'wall', label: '墙体厚度 (mm)', unit: 'mm', color: '#C0392B' },
+        '墙体': { field: 'wall', label: '墙体厚度 (mm)', unit: 'mm', color: '#C0392B' },
+        '墙厚': { field: 'wall', label: '墙体厚度 (mm)', unit: 'mm', color: '#C0392B' },
+        '墙壁': { field: 'wall', label: '墙体厚度 (mm)', unit: 'mm', color: '#C0392B' },
+        // 窗墙比
+        '窗墙比': { field: 'ratio', label: '窗墙比', unit: '', color: '#2c7bb6' },
+        '窗墙': { field: 'ratio', label: '窗墙比', unit: '', color: '#2c7bb6' },
+        '窗户': { field: 'ratio', label: '窗墙比', unit: '', color: '#2c7bb6' },
+        // 屋顶坡度
+        '屋顶坡度': { field: 'pitch', label: '屋顶坡度 (°)', unit: '°', color: '#6A994E' },
+        '屋顶': { field: 'pitch', label: '屋顶坡度 (°)', unit: '°', color: '#6A994E' },
+        '坡度': { field: 'pitch', label: '屋顶坡度 (°)', unit: '°', color: '#6A994E' },
+        // 温度
+        '年均温': { field: 'temp', label: '年均温 (℃)', unit: '℃', color: '#E28A55' },
+        '温度': { field: 'temp', label: '年均温 (℃)', unit: '℃', color: '#E28A55' },
+        '气温': { field: 'temp', label: '年均温 (℃)', unit: '℃', color: '#E28A55' },
+        // 降水
+        '年降水': { field: 'precip', label: '年降水 (mm)', unit: 'mm', color: '#4A6FA5' },
+        '降水': { field: 'precip', label: '年降水 (mm)', unit: 'mm', color: '#4A6FA5' },
+        '降雨': { field: 'precip', label: '年降水 (mm)', unit: 'mm', color: '#4A6FA5' },
+        '雨量': { field: 'precip', label: '年降水 (mm)', unit: 'mm', color: '#4A6FA5' },
+        // 评分维度
+        '保温': { field: 'scores.保温', label: '保温评分', unit: '分', color: '#D4A5A5' },
+        '隔热': { field: 'scores.隔热', label: '隔热评分', unit: '分', color: '#8FAA76' },
+        '通风': { field: 'scores.通风', label: '通风评分', unit: '分', color: '#4A6FA5' },
+        '防潮': { field: 'scores.防潮', label: '防潮评分', unit: '分', color: '#B8A389' },
+        '采光': { field: 'scores.采光', label: '采光评分', unit: '分', color: '#E28A55' },
+    };
+    
     const periodNotes = {
         "all": "<strong>🏮 当前：全部时期</strong> — 25种民居完整呈现。",
         "pre_qin": "<strong>🏺 史前-先秦</strong> — 穴居、干栏式萌芽，早期被动适应。",
@@ -704,6 +749,134 @@
     }
     function renderPlotlyCompare() { let avg=getNorthSouthAvg(); Plotly.newPlot(plotlyChartDiv, [{x:['墙体厚度 (mm)','窗墙比','屋顶坡度 (°)'], y:[avg.north.wall, avg.north.ratio, avg.north.pitch], name:'北方民居', type:'bar', marker:{color:'#2c7bb6'}},{x:['墙体厚度 (mm)','窗墙比','屋顶坡度 (°)'], y:[avg.south.wall, avg.south.ratio, avg.south.pitch], name:'南方民居', type:'bar', marker:{color:'#d7191c'}}], {barmode:'group', title:'南北民居关键特征对比', paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)'},{responsive:true}); }
     
+    // ========== 关键词搜索功能 ==========
+    // 获取嵌套字段值，如 "scores.保温"
+    function getFieldValue(house, fieldPath) {
+        const parts = fieldPath.split('.');
+        let val = house;
+        for (const part of parts) {
+            if (val === undefined || val === null) return null;
+            val = val[part];
+        }
+        return val;
+    }
+    
+    function performSearch(keyword) {
+        const trimmed = keyword.trim();
+        if (!trimmed) {
+            exitSearchMode();
+            return;
+        }
+        
+        // ===== 先尝试按民居名称搜索 =====
+        const matchedHouse = currentHouses.find(h => h.name === trimmed);
+        if (matchedHouse) {
+            // 搜索到民居名称：退出搜索模式（如果有），高亮该民居并展示信息面板
+            if (currentSearchField) {
+                exitSearchMode();
+            }
+            const idx = currentHouses.findIndex(h => h.name === trimmed);
+            if (idx !== -1) {
+                // 确保地图和图表可见
+                const plotlyCard = document.getElementById('plotlyCard');
+                const radarCard = document.getElementById('radarCard');
+                const kpiContainer = document.getElementById('kpiContainer');
+                const mapDetailRow = document.querySelector('.map-detail-row');
+                if (plotlyCard) plotlyCard.style.display = '';
+                if (radarCard) radarCard.style.display = '';
+                if (kpiContainer) kpiContainer.style.display = '';
+                if (mapDetailRow) mapDetailRow.style.display = '';
+                document.getElementById('searchBackContainer').style.display = 'none';
+                
+                highlightHouse(idx);
+                // 地图上也高亮对应的点
+                mapChart.dispatchAction({
+                    type: 'showTip',
+                    seriesIndex: 0,
+                    dataIndex: idx
+                });
+            }
+            document.getElementById('status').innerHTML = `
+                <div style="background:#F0FAF0; border:1px solid var(--secondary); border-radius:20px; padding:14px 20px; margin:8px 0;">
+                    <div style="font-size:1rem; font-weight:700; color:var(--secondary); margin-bottom:6px;">🏡 已找到民居「${matchedHouse.name}」</div>
+                    <div style="font-size:0.8rem; color:#5A3A2A;">💡 右侧信息面板展示了该民居的详细信息</div>
+                </div>
+            `;
+            return;
+        }
+        
+        // ===== 再尝试按关键词搜索 =====
+        // 查找匹配的关键词
+        let matchedKey = null;
+        let matchedInfo = null;
+        for (const [key, info] of Object.entries(keywordMap)) {
+            if (trimmed.includes(key) || key.includes(trimmed)) {
+                matchedKey = key;
+                matchedInfo = info;
+                break;
+            }
+        }
+        
+        if (!matchedInfo) {
+            // 搜索失败：显示失败提示 + 可搜索关键词列表 + 民居名称列表
+            const keywordList = ['墙体厚度', '窗墙比', '屋顶坡度', '年均温', '年降水', '保温', '隔热', '通风', '防潮', '采光'];
+            const chips = keywordList.map(k => `<span style="display:inline-block; background:#F4EFE6; border:1px solid var(--gold); border-radius:30px; padding:4px 14px; margin:4px 6px; font-size:0.8rem; cursor:pointer; transition:var(--transition);" onmouseover="this.style.background='var(--gold)';this.style.color='#5A2A1F';" onmouseout="this.style.background='#F4EFE6';this.style.color='inherit';" onclick="document.getElementById('searchInput').value='${k}';performSearch('${k}');">${k}</span>`).join('');
+            // 民居名称标签
+            const houseChips = allHouses.map(h => `<span style="display:inline-block; background:#E8F0FE; border:1px solid #4A6FA5; border-radius:30px; padding:4px 14px; margin:4px 6px; font-size:0.8rem; cursor:pointer; transition:var(--transition); color:#2A3B4C;" onmouseover="this.style.background='#4A6FA5';this.style.color='#FFF';" onmouseout="this.style.background='#E8F0FE';this.style.color='#2A3B4C';" onclick="document.getElementById('searchInput').value='${h.name}';performSearch('${h.name}');">🏘️ ${h.name}</span>`).join('');
+            document.getElementById('status').innerHTML = `
+                <div style="background:#FFF5F0; border:1px solid #E05A4A; border-radius:20px; padding:16px 20px; margin:8px 0;">
+                    <div style="font-size:1rem; font-weight:700; color:var(--accent); margin-bottom:8px;">❌ 未找到与"${trimmed}"匹配的数据特征或民居名称</div>
+                    <div style="font-size:0.85rem; color:#5A3A2A; margin-bottom:6px;">💡 可搜索以下关键词：</div>
+                    <div>${chips}</div>
+                    <div style="font-size:0.85rem; color:#5A3A2A; margin:10px 0 6px;">🏘️ 或直接搜索民居名称：</div>
+                    <div>${houseChips}</div>
+                </div>
+            `;
+            return;
+        }
+        
+        currentSearchField = matchedInfo;
+        currentSearchKeyword = trimmed;
+        
+        // 重新渲染图表（搜索模式：只显示柱状图）
+        renderAllCharts();
+        
+        // 搜索成功：显示成功提示 + 可搜索关键词列表 + 民居名称列表
+        const keywordList = ['墙体厚度', '窗墙比', '屋顶坡度', '年均温', '年降水', '保温', '隔热', '通风', '防潮', '采光'];
+        const chips = keywordList.map(k => `<span style="display:inline-block; background:#F4EFE6; border:1px solid var(--gold); border-radius:30px; padding:3px 12px; margin:3px 5px; font-size:0.75rem; cursor:pointer; transition:var(--transition);" onmouseover="this.style.background='var(--gold)';this.style.color='#5A2A1F';" onmouseout="this.style.background='#F4EFE6';this.style.color='inherit';" onclick="document.getElementById('searchInput').value='${k}';performSearch('${k}');">${k}</span>`).join('');
+        const houseChips = allHouses.map(h => `<span style="display:inline-block; background:#E8F0FE; border:1px solid #4A6FA5; border-radius:30px; padding:3px 12px; margin:3px 5px; font-size:0.75rem; cursor:pointer; transition:var(--transition); color:#2A3B4C;" onmouseover="this.style.background='#4A6FA5';this.style.color='#FFF';" onmouseout="this.style.background='#E8F0FE';this.style.color='#2A3B4C';" onclick="document.getElementById('searchInput').value='${h.name}';performSearch('${h.name}');">🏘️ ${h.name}</span>`).join('');
+        document.getElementById('status').innerHTML = `
+            <div style="background:#F0FAF0; border:1px solid var(--secondary); border-radius:20px; padding:14px 20px; margin:8px 0;">
+                <div style="font-size:1rem; font-weight:700; color:var(--secondary); margin-bottom:6px;">✅ 搜索成功！"${trimmed}" → 「${matchedInfo.label}」</div>
+                <div style="font-size:0.8rem; color:#5A3A2A;">💡 试试其他关键词：${chips}</div>
+                <div style="font-size:0.8rem; color:#5A3A2A; margin-top:6px;">🏘️ 或搜索民居名称：${houseChips}</div>
+            </div>
+        `;
+    }
+    
+    function exitSearchMode() {
+        currentSearchField = null;
+        currentSearchKeyword = '';
+        document.getElementById('searchInput').value = '';
+        // 恢复所有图表显示
+        const plotlyCard = document.getElementById('plotlyCard');
+        const radarCard = document.getElementById('radarCard');
+        const kpiContainer = document.getElementById('kpiContainer');
+        const mapDetailRow = document.querySelector('.map-detail-row');
+        if (plotlyCard) plotlyCard.style.display = '';
+        if (radarCard) radarCard.style.display = '';
+        if (kpiContainer) kpiContainer.style.display = '';
+        if (mapDetailRow) mapDetailRow.style.display = '';
+        document.getElementById('searchBackContainer').style.display = 'none';
+        // 恢复柱状图卡片为默认一列
+        const barChartCard = document.getElementById('barChartCard');
+        if (barChartCard) barChartCard.style.gridColumn = '';
+        // 恢复柱状图标题
+        const barH3 = document.querySelector('#barChartCard h3');
+        if (barH3) barH3.innerHTML = '📊 建筑特征对比 · 墙体/窗墙/坡度<button class="export-img-btn" data-chart="barChart">📸 导出</button>';
+        renderAllCharts();
+    }
+    
     function highlightHouse(index) { 
         if(index===currentHighlightIndex) return;
         if(currentHighlightIndex!==-1) { barChart.dispatchAction({type:'downplay',seriesIndex:0,dataIndex:currentHighlightIndex}); radarChart.dispatchAction({type:'downplay',seriesIndex:0,dataIndex:currentHighlightIndex}); }
@@ -712,30 +885,126 @@
         currentHighlightIndex = index; updateInfoPanel(currentHouses[index]); document.getElementById('status').innerHTML = `✅ 当前选中：${currentHouses[index].name}`;
     }
     
-    function renderAllCharts() { 
+    function renderAllCharts() {
         const scatterData = currentHouses.map(h=>({ name:h.name, value:h.coords, climateZone:h.climate, temp:h.temp, itemStyle:{color:climateColors[h.climate]} }));
         mapChart.setOption({ title:{ text:`${currentHouses.length}处民居分布`, left:'center' }, geo:{ map:'china', roam:true, zoom:1.0, itemStyle:{ borderColor:'#B87C4F', areaColor:'#F3E9D2' } }, series:[{ type:'scatter', coordinateSystem:'geo', data:scatterData, symbolSize:12, itemStyle:{ borderColor:'#FFF' } }] });
         
-        barChart.setOption({ tooltip:{trigger:'axis'}, legend:{data:['墙体厚度 (mm)','窗墙比','屋顶坡度 (°)']}, xAxis:{type:'category', data:currentHouses.map(h=>h.name), axisLabel:{rotate:45,interval:0,fontSize:9}}, yAxis:[{type:'value',name:'墙体/坡度'},{type:'value',name:'窗墙比',min:0,max:0.5}], series:[{name:'墙体厚度 (mm)',type:'bar',data:currentHouses.map(h=>({value:h.wall, itemStyle:{color:climateColors[h.climate]}}))},{name:'窗墙比',type:'line',yAxisIndex:1,data:currentHouses.map(h=>h.ratio)},{name:'屋顶坡度 (°)',type:'bar',data:currentHouses.map(h=>({value:h.pitch, itemStyle:{color:climateColors[h.climate]}}))}] });
-        
-        radarChart.setOption({
-            tooltip: { trigger: 'item', formatter: function(params) { if (!params.value) return params.name; const indicators = ['保温', '隔热', '通风', '防潮', '采光']; let html = `<strong>${params.name}</strong><br/>`; params.value.forEach((val, idx) => { html += `${indicators[idx]}: ${val} 分<br/>`; }); return html; } },
-            legend: { orient: 'vertical', left: 'left', type: 'scroll', pageIconColor: '#6A994E', textStyle: { fontSize: 9 }, formatter: (name) => name.length > 12 ? name.slice(0, 10) + '...' : name },
-            radar: { indicator: [ { name: '保温', max: 10 }, { name: '隔热', max: 10 }, { name: '通风', max: 10 }, { name: '防潮', max: 10 }, { name: '采光', max: 10 } ], shape: 'circle', name: { textStyle: { fontSize: 11, fontWeight: 'bold', color: '#5A3A2A' } }, center: ['50%', '50%'], radius: '65%' },
-            series: [{ type: 'radar', data: currentHouses.map(house => ({ name: house.name, value: [ house.scores.保温, house.scores.隔热, house.scores.通风, house.scores.防潮, house.scores.采光 ], lineStyle: { color: climateColors[house.climate], width: 1.5 }, areaStyle: { color: climateColors[house.climate] + '30' }, symbol: 'circle', symbolSize: 4, itemStyle: { color: climateColors[house.climate] } })), symbolSize: 3 }]
-        });
-        
-        renderPlotlyCompare(); 
-        currentHighlightIndex = -1; 
-        updateInfoPanel(null); 
-        updateKPI(); 
-        document.getElementById('status').innerHTML = `📊 当前 ${currentHouses.length} 处民居 | 点击地图/条形图查看详情`; 
-        setTimeout(()=>{ if(mapChart) mapChart.resize(); radarChart.resize(); }, 100);
+        // 柱状图：根据搜索状态动态展示
+        if (currentSearchField) {
+            // ===== 搜索模式 =====
+            // 隐藏其他图表，只显示柱状图
+            const plotlyCard = document.getElementById('plotlyCard');
+            const radarCard = document.getElementById('radarCard');
+            const kpiContainer = document.getElementById('kpiContainer');
+            const mapDetailRow = document.querySelector('.map-detail-row');
+            if (plotlyCard) plotlyCard.style.display = 'none';
+            if (radarCard) radarCard.style.display = 'none';
+            if (kpiContainer) kpiContainer.style.display = 'none';
+            if (mapDetailRow) mapDetailRow.style.display = 'none';
+            
+            // 显示返回按钮
+            document.getElementById('searchBackContainer').style.display = 'block';
+            
+            // 柱状图卡片居中：设置 grid-column 占满两列
+            const barChartCard = document.getElementById('barChartCard');
+            if (barChartCard) barChartCard.style.gridColumn = '1 / -1';
+            
+            // 修改柱状图标题
+            const barH3 = document.querySelector('#barChartCard h3');
+            if (barH3) barH3.innerHTML = `🔍 搜索结果 · ${currentSearchField.label}<button class="export-img-btn" data-chart="barChart">📸 导出</button>`;
+            
+            // 渲染搜索柱状图
+            const field = currentSearchField.field;
+            const label = currentSearchField.label;
+            const color = currentSearchField.color;
+            const searchData = currentHouses.map(h => ({
+                value: getFieldValue(h, field),
+                itemStyle: { color: climateColors[h.climate] || color }
+            }));
+            barChart.setOption({
+                tooltip: {
+                    trigger: 'axis',
+                    formatter: function(params) {
+                        const p = params[0];
+                        if (!p) return '';
+                        const house = currentHouses[p.dataIndex];
+                        return `<strong>${house.name}</strong><br/>${label}: ${p.value} ${currentSearchField.unit}<br/>气候区: ${house.climate}`;
+                    }
+                },
+                grid: { containLabel: true, left: '8%', right: '8%' },
+                legend: { data: [label] },
+                xAxis: { type:'category', data: currentHouses.map(h=>h.name), axisLabel: { rotate: 45, interval: 0, fontSize: 9 } },
+                yAxis: { type: 'value', name: label },
+                series: [{
+                    name: label,
+                    type: 'bar',
+                    data: searchData,
+                    barWidth: '50%',
+                    itemStyle: {
+                        borderColor: '#fff',
+                        borderWidth: 1,
+                        borderRadius: [4, 4, 0, 0]
+                    }
+                }]
+            });
+            
+            currentHighlightIndex = -1;
+            updateInfoPanel(null);
+            // 搜索模式下不更新KPI、不渲染地图/雷达/plotly
+            setTimeout(()=>{ if(barChart) barChart.resize(); }, 100);
+        } else {
+            // ===== 默认模式 =====
+            // 恢复所有图表显示
+            const plotlyCard = document.getElementById('plotlyCard');
+            const radarCard = document.getElementById('radarCard');
+            const kpiContainer = document.getElementById('kpiContainer');
+            const mapDetailRow = document.querySelector('.map-detail-row');
+            if (plotlyCard) plotlyCard.style.display = '';
+            if (radarCard) radarCard.style.display = '';
+            if (kpiContainer) kpiContainer.style.display = '';
+            if (mapDetailRow) mapDetailRow.style.display = '';
+            document.getElementById('searchBackContainer').style.display = 'none';
+            
+            // 恢复柱状图卡片为默认一列
+            const barChartCard = document.getElementById('barChartCard');
+            if (barChartCard) barChartCard.style.gridColumn = '';
+            
+            // 恢复柱状图标题
+            const barH3 = document.querySelector('#barChartCard h3');
+            if (barH3) barH3.innerHTML = '📊 建筑特征对比 · 墙体/窗墙/坡度<button class="export-img-btn" data-chart="barChart">📸 导出</button>';
+            
+            barChart.setOption({
+                tooltip:{trigger:'axis'},
+                legend:{data:['墙体厚度 (mm)','窗墙比','屋顶坡度 (°)']},
+                grid:{containLabel:true, left:'6%', right:'6%'},
+                xAxis:{type:'category', data:currentHouses.map(h=>h.name), axisLabel:{rotate:40,interval:0,fontSize:8}},
+                yAxis:[{type:'value',name:'墙体/坡度'},{type:'value',name:'窗墙比',min:0,max:0.5}],
+                series:[
+                    {name:'墙体厚度 (mm)',type:'bar',data:currentHouses.map(h=>({value:h.wall, itemStyle:{color:climateColors[h.climate]}})), barWidth:'60%'},
+                    {name:'窗墙比',type:'line',yAxisIndex:1,data:currentHouses.map(h=>h.ratio)},
+                    {name:'屋顶坡度 (°)',type:'bar',data:currentHouses.map(h=>({value:h.pitch, itemStyle:{color:climateColors[h.climate]}})), barWidth:'60%'}
+                ]
+            });
+            
+            radarChart.setOption({
+                tooltip: { trigger: 'item', formatter: function(params) { if (!params.value) return params.name; const indicators = ['保温', '隔热', '通风', '防潮', '采光']; let html = `<strong>${params.name}</strong><br/>`; params.value.forEach((val, idx) => { html += `${indicators[idx]}: ${val} 分<br/>`; }); return html; } },
+                legend: { orient: 'vertical', left: 'left', type: 'scroll', pageIconColor: '#6A994E', textStyle: { fontSize: 9 }, formatter: (name) => name.length > 12 ? name.slice(0, 10) + '...' : name },
+                radar: { indicator: [ { name: '保温', max: 10 }, { name: '隔热', max: 10 }, { name: '通风', max: 10 }, { name: '防潮', max: 10 }, { name: '采光', max: 10 } ], shape: 'circle', name: { textStyle: { fontSize: 11, fontWeight: 'bold', color: '#5A3A2A' } }, center: ['50%', '50%'], radius: '65%' },
+                series: [{ type: 'radar', data: currentHouses.map(house => ({ name: house.name, value: [ house.scores.保温, house.scores.隔热, house.scores.通风, house.scores.防潮, house.scores.采光 ], lineStyle: { color: climateColors[house.climate], width: 1.5 }, areaStyle: { color: climateColors[house.climate] + '30' }, symbol: 'circle', symbolSize: 4, itemStyle: { color: climateColors[house.climate] } })), symbolSize: 3 }]
+            });
+            
+            renderPlotlyCompare();
+            currentHighlightIndex = -1;
+            updateInfoPanel(null);
+            updateKPI();
+            document.getElementById('status').innerHTML = `📊 当前 ${currentHouses.length} 处民居 | 点击地图/条形图查看详情`;
+            setTimeout(()=>{ if(mapChart) mapChart.resize(); radarChart.resize(); }, 100);
+        }
     }
     
-    function filterByPeriod(period) { currentPeriod=period; currentHouses=period==="all"?[...allHouses]:allHouses.filter(h=>h.period===period); document.querySelectorAll('.timeline-btn').forEach(btn=>{ if(btn.dataset.period===period) btn.classList.add('active'); else btn.classList.remove('active'); }); document.getElementById('periodNote').innerHTML = periodNotes[period]||periodNotes.all; renderAllCharts(); bindMapClick(); if(currentHighlightIndex!==-1){ currentHighlightIndex=-1; updateInfoPanel(null); } document.getElementById('climateFilter').value="all"; }
+    function filterByPeriod(period) { currentSearchField=null; currentSearchKeyword=''; document.getElementById('searchInput').value=''; currentPeriod=period; currentHouses=period==="all"?[...allHouses]:allHouses.filter(h=>h.period===period); document.querySelectorAll('.timeline-btn').forEach(btn=>{ if(btn.dataset.period===period) btn.classList.add('active'); else btn.classList.remove('active'); }); document.getElementById('periodNote').innerHTML = periodNotes[period]||periodNotes.all; renderAllCharts(); bindMapClick(); if(currentHighlightIndex!==-1){ currentHighlightIndex=-1; updateInfoPanel(null); } document.getElementById('climateFilter').value="all"; }
     function resetPeriod() { filterByPeriod("all"); }
-    function filterByClimate(v) { let base=currentPeriod==="all"?[...allHouses]:allHouses.filter(h=>h.period===currentPeriod); currentHouses=v==="all"?base:base.filter(h=>h.climate===v); renderAllCharts(); bindMapClick(); if(currentHighlightIndex!==-1){ currentHighlightIndex=-1; updateInfoPanel(null); } }
+    function filterByClimate(v) { currentSearchField=null; currentSearchKeyword=''; document.getElementById('searchInput').value=''; let base=currentPeriod==="all"?[...allHouses]:allHouses.filter(h=>h.period===currentPeriod); currentHouses=v==="all"?base:base.filter(h=>h.climate===v); renderAllCharts(); bindMapClick(); if(currentHighlightIndex!==-1){ currentHighlightIndex=-1; updateInfoPanel(null); } }
     function bindMapClick(){ mapChart.off('click'); mapChart.on('click', function(params){ if(params.seriesType==='scatter' && params.data){ let idx = currentHouses.findIndex(h=>h.name===params.data.name); if(idx!==-1) highlightHouse(idx); } }); }
     function exportChartImg(id){ let c=echarts.getInstanceByDom(document.getElementById(id)); if(c){ let a=document.createElement('a'); a.href=c.getDataURL({type:'png',pixelRatio:2}); a.download=`${id}.png`; a.click(); } }
     function exportPlotlyImg(){ Plotly.downloadImage(plotlyChartDiv,{format:'png',filename:'plotly_compare'}); }
@@ -752,11 +1021,16 @@
         document.querySelectorAll('.export-img-btn:not(#exportPlotlyBtn)').forEach(btn=>btn.onclick=()=>exportChartImg(btn.dataset.chart)); 
         document.getElementById('exportPlotlyBtn').onclick=exportPlotlyImg; 
         document.getElementById('climateFilter').onchange=e=>filterByClimate(e.target.value); 
-        document.getElementById('clearHighlightBtn').onclick=()=>{ if(currentHighlightIndex!==-1){ barChart.dispatchAction({type:'downplay',seriesIndex:0,dataIndex:currentHighlightIndex}); radarChart.dispatchAction({type:'downplay',seriesIndex:0,dataIndex:currentHighlightIndex}); currentHighlightIndex=-1; updateInfoPanel(null); document.getElementById('status').innerHTML='✨ 已清除高亮'; } }; 
+        document.getElementById('clearHighlightBtn').onclick=()=>{ if(currentSearchField){ exitSearchMode(); } if(currentHighlightIndex!==-1){ barChart.dispatchAction({type:'downplay',seriesIndex:0,dataIndex:currentHighlightIndex}); radarChart.dispatchAction({type:'downplay',seriesIndex:0,dataIndex:currentHighlightIndex}); currentHighlightIndex=-1; updateInfoPanel(null); document.getElementById('status').innerHTML='✨ 已清除高亮'; } };
         document.getElementById('exportCSVBtn').onclick=exportCSV; 
         document.getElementById('simulateCaveBtn').onclick=showSimulation; 
-        document.getElementById('resetPeriodBtn').onclick=resetPeriod; 
-        window.addEventListener('resize',()=>{ [mapChart,barChart,radarChart].forEach(c=>c&&c.resize()); if(plotlyChartDiv) Plotly.relayout(plotlyChartDiv,{width:plotlyChartDiv.clientWidth}); }); 
+        document.getElementById('resetPeriodBtn').onclick=resetPeriod;
+        // 搜索功能事件绑定
+        document.getElementById('searchBtn').onclick=()=>performSearch(document.getElementById('searchInput').value);
+        document.getElementById('searchInput').onkeydown=e=>{ if(e.key==='Enter') performSearch(e.target.value); };
+        // 返回按钮事件绑定
+        document.getElementById('exitSearchBtn').onclick=exitSearchMode;
+        window.addEventListener('resize',()=>{ [mapChart,barChart,radarChart].forEach(c=>c&&c.resize()); if(plotlyChartDiv) Plotly.relayout(plotlyChartDiv,{width:plotlyChartDiv.clientWidth}); });
         let backBtn=document.getElementById('backToTop'); window.onscroll=()=>backBtn.classList.toggle('show',window.scrollY>300); backBtn.onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
     }
     init();
