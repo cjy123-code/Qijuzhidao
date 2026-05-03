@@ -6,6 +6,7 @@
     <title>民居智慧实验室 · 交互式设计工坊</title>
     <!-- ECharts -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@4.9.0/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="css/layout.css">
     <style>
         /* ===== 全局重置 & 设计变量 ===== */
         * {
@@ -37,7 +38,6 @@
             font-family: 'Inter', 'Segoe UI', '思源黑体', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
             background-color: var(--bg-light);
             color: var(--text-dark);
-            padding: 20px;
         }
 
         /* ===== 顶部标题栏 ===== */
@@ -115,6 +115,7 @@
             grid-template-columns: 340px 1fr;
             gap: 24px;
             align-items: start;
+            padding: 0 20px 20px;
         }
 
         /* ===== 左侧控制面板 ===== */
@@ -414,7 +415,6 @@
         }
 
         @media (max-width: 640px) {
-            body { padding: 12px; }
             .lab-title h1 { font-size: 1.2rem; }
             .score-row { grid-template-columns: 1fr; }
             .lab-header { flex-direction: column; align-items: flex-start; }
@@ -422,6 +422,36 @@
     </style>
 </head>
 <body>
+<div class="container">
+    <!-- 顶部导航栏 -->
+    <div class="hero-nav">
+        <div class="nav-header">
+            <div class="logo-area">
+                <span class="logo-icon">🏮</span>
+                <h1>栖居之道</h1>
+                <span class="title-sub">气候适应性智慧 · 实验室</span>
+            </div>
+            <div class="nav-links">
+                <span id="user-info"></span>
+                <button id="login-btn" class="login-btn" onclick="showLoginModal()">登录/注册</button>
+                <button id="logout-btn" class="logout-btn" style="display: none;" onclick="logout()">退出</button>
+                <button id="favorites-btn" class="favorites-btn" style="display: none;" onclick="window.location.href='favorites.html'">我的收藏</button>
+            </div>
+        </div>
+        <div class="nav-tabs">
+            <a href="index.html" class="nav-tab">📊 总览</a>
+            <a href="houses.html" class="nav-tab">🏘️ 民居库</a>
+            <a href="map.html" class="nav-tab">🌍 气候分析</a>
+            <a href="lab.html" class="nav-tab active">🧪 实验室</a>
+            <a href="tools.html" class="nav-tab">🧰 工具箱</a>
+            <a href="profile.html" class="nav-tab">👤 个人中心</a>
+        </div>
+        <div class="intro-section">
+            <div class="intro-text">
+                <p>"<strong>天人合一，道法自然</strong> —— 调节参数，亲手设计气候适应性民居。"</p>
+            </div>
+        </div>
+    </div>
 
 <!-- ===== 顶部标题栏 ===== -->
 <div class="lab-header">
@@ -535,6 +565,44 @@
         </div>
     </div>
 </div>
+
+<!-- 页脚 -->
+<footer class="site-footer">
+    <p>🏮 栖居之道 —— 中国古代民居的气候适应性智慧图谱</p>
+    <p>©2026 中国大学生计算机设计大赛 | 云南大学 信息学院</p>
+    <p class="footer-map-source">地图来源：自然资源部标准地图服务（审图号：GS(2016)1570号）</p>
+</footer>
+</div>
+
+<!-- 返回顶部 -->
+<button id="backToTop" title="返回顶部">↑</button>
+
+<!-- Toast通知 -->
+<div id="toast" class="toast"></div>
+
+<!-- 登录模态框 -->
+<div id="login-modal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="modal-title">用户登录</h2>
+        <form id="auth-form">
+            <div class="form-group">
+                <label for="email">邮箱：</label>
+                <input type="email" id="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">密码：</label>
+                <input type="password" id="password" required>
+            </div>
+            <button type="submit" id="auth-submit-btn" class="modal-btn">登录</button>
+        </form>
+        <p id="auth-toggle" style="text-align: center; margin-top: 16px; color: var(--text-dark);">
+            还没有账号？<a href="#" onclick="toggleAuthMode(); return false;" style="color: var(--primary); text-decoration: none; font-weight: 600;">立即注册</a>
+        </p>
+    </div>
+</div>
+
+<script src="js/shared.js"></script>
 
 <script>
 (function() {
@@ -1074,10 +1142,7 @@
         });
 
         document.getElementById('backBtn').addEventListener('click', function() {
-            // 通过 postMessage 向父页面发送返回信号
-            if (window.parent) {
-                window.parent.postMessage('close-lab', '*');
-            }
+            window.location.href = 'index.html';
         });
 
         window.addEventListener('resize', function() {
